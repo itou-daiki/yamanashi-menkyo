@@ -1,1 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>パケット通信シミュレータ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">情報Ⅰ・ネットワーク入門</p>
+      <h1>パケット通信シミュレータ</h1>
+      <p class="lead">大きなデータが「小さく分けられ、情報を付けられ、ネットワークを通って、もう一度つながる」流れを体験しよう。</p>
+    </div>
+  </header>
 
+  <main class="container">
+    <section class="panel control-panel">
+      <div class="section-title">
+        <span class="step-badge">0</span>
+        <div>
+          <h2>送るデータを準備する</h2>
+          <p>送信元PCから宛先PCへ送る文章を入力します。</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          送信元
+          <select id="sourceSelect">
+            <option value="PC-A">PC-A</option>
+            <option value="PC-B">PC-B</option>
+          </select>
+        </label>
+        <label>
+          宛先
+          <select id="destinationSelect">
+            <option value="PC-B">PC-B</option>
+            <option value="PC-A">PC-A</option>
+          </select>
+        </label>
+        <label class="wide">
+          元データ
+          <textarea id="messageInput" rows="3">こんにちは。ネットワークでは、大きなデータを小さなパケットに分けて送ります。</textarea>
+        </label>
+        <label>
+          1パケットのデータ量
+          <select id="chunkSizeSelect">
+            <option value="6">6文字</option>
+            <option value="8" selected>8文字</option>
+            <option value="10">10文字</option>
+            <option value="12">12文字</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="resetBtn" class="secondary">最初から</button>
+        <button id="nextBtn" class="primary">次へ進む</button>
+        <button id="autoBtn" class="accent">自動で見る</button>
+      </div>
+    </section>
+
+    <section class="progress-wrap" aria-label="学習ステップ">
+      <div class="progress-line"><div id="progressFill"></div></div>
+      <div class="progress-steps">
+        <div class="progress-item active" data-step="0"><span>0</span><b>元データ</b></div>
+        <div class="progress-item" data-step="1"><span>1</span><b>分割</b></div>
+        <div class="progress-item" data-step="2"><span>2</span><b>ヘッダ</b></div>
+        <div class="progress-item" data-step="3"><span>3</span><b>通信</b></div>
+        <div class="progress-item" data-step="4"><span>4</span><b>再構成</b></div>
+      </div>
+    </section>
+
+    <section class="panel lesson-panel">
+      <div class="section-title">
+        <span id="currentStepBadge" class="step-badge">0</span>
+        <div>
+          <h2 id="stepTitle">元データ</h2>
+          <p id="stepExplanation">まずは、送信したいデータ全体を確認します。</p>
+        </div>
+      </div>
+
+      <div id="stage" class="stage">
+        <div class="raw-data-card">
+          <div class="card-label">元データ</div>
+          <div id="rawMessage" class="raw-message"></div>
+          <div id="rawMeta" class="raw-meta"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel network-panel">
+      <div class="section-title">
+        <span class="step-badge">3</span>
+        <div>
+          <h2>ネットワーク通信のイメージ</h2>
+          <p>パケットは複数の機器を経由して、宛先まで届きます。ここではルータを通る様子を簡略化して表しています。</p>
+        </div>
+      </div>
+
+      <div class="network-map" id="networkMap">
+        <div class="node pc" id="node-source">
+          <div class="icon">💻</div>
+          <div id="sourceLabel">PC-A</div>
+        </div>
+        <div class="link"></div>
+        <div class="node router">
+          <div class="icon">📡</div>
+          <div>ルータ1</div>
+        </div>
+        <div class="link"></div>
+        <div class="node router">
+          <div class="icon">📡</div>
+          <div>ルータ2</div>
+        </div>
+        <div class="link"></div>
+        <div class="node pc" id="node-destination">
+          <div class="icon">💻</div>
+          <div id="destinationLabel">PC-B</div>
+        </div>
+        <div id="movingPacket" class="moving-packet hidden">P1</div>
+      </div>
+      <div id="networkStatus" class="network-status">通信ステップになると、パケットがここを移動します。</div>
+    </section>
+
+    <section class="panel concept-panel">
+      <h2>覚えておこう</h2>
+      <div class="concept-grid">
+        <article>
+          <div class="concept-icon">✂️</div>
+          <h3>分割</h3>
+          <p>大きなデータを小さな単位に分けると、ネットワークで扱いやすくなります。</p>
+        </article>
+        <article>
+          <div class="concept-icon">🏷️</div>
+          <h3>ヘッダ</h3>
+          <p>「どこから・どこへ・何番目か」など、通信に必要な情報をデータに付けます。</p>
+        </article>
+        <article>
+          <div class="concept-icon">🛣️</div>
+          <h3>経路</h3>
+          <p>パケットはネットワーク機器を経由して宛先へ届きます。</p>
+        </article>
+        <article>
+          <div class="concept-icon">🧩</div>
+          <h3>再構成</h3>
+          <p>届いたパケットを番号順に並べると、元のデータに戻せます。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>高校「情報Ⅰ」ネットワーク学習用シミュレータ</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
